@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="ForTheRecord..68841933-2197-40be-bb75-f5059fd87b84" Version="1.0.1" Language="en-US" Publisher="Jeppe Roi Kristensen"/>
+    <Identity Id="ForTheRecord..68841933-2197-40be-bb75-f5059fd87b84" Version="1.0.2" Language="en-US" Publisher="Jeppe Roi Kristensen"/>
     <DisplayName>For the record</DisplayName>
     <Description xml:space="preserve">This is a code refactoring extension for converting a record to a class or a class to a record.</Description>
     <Icon>Icon\icon.png</Icon>
     <PreviewImage>Icon\icon.png</PreviewImage>
     <Preview>true</Preview>
-    
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,)" />

@@ -3,10 +3,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAssertions.Formatting;
 using ForTheRecord.Refactorings.RecordToClass;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,7 +22,7 @@ namespace ForTheRecord.UnitTests.RecordToClass
         }
 
         [Fact]
-        public async Task ConvertToClass_MatchExpected()
+        public async Task ConvertToClass_DontInitPropertiesInConstructor_MatchExpected()
         {
             var harness = await TestHarness.Init(@"namespace Custom
 {
@@ -33,7 +33,7 @@ namespace ForTheRecord.UnitTests.RecordToClass
         public string First { get;set; }
     }
 }");
-            var result = await harness.Subject.ConvertToClass(harness.Subject.Context.Document, harness.Subject.Record, CancellationToken.None);
+            var result = await harness.Subject.ConvertToClass(harness.Subject.Context.Document, harness.Subject.Record, false,CancellationToken.None);
 
             var textAsync = await result.GetTextAsync(CancellationToken.None);
             textAsync.ToString().Should().Be(@"namespace Custom
@@ -54,8 +54,51 @@ namespace ForTheRecord.UnitTests.RecordToClass
             var testRecord = root.DescendantNodes().OfType<ClassDeclarationSyntax>().SingleOrDefault(x => x.Identifier.ToString() == "TestRecord");
             testRecord.Should().NotBeNull();
             testRecord!.ContainsAnnotations.Should().BeTrue();
-            int i = 0;
+            testRecord!.HasAnnotation(Formatter.Annotation).Should().BeTrue();
         }
+
+        [Fact]
+        public async Task ConvertToClass_InitPropertiesInConstructor_MatchExpected()
+        {
+            var harness = await TestHarness.Init(@"namespace Custom
+{
+    public record T[|estRec|]ord(string FirstName, string LastName) {}
+
+    public class ClassWithProperties 
+    {
+        public string First { get;set; }
+    }
+}");
+            var result = await harness.Subject.ConvertToClass(harness.Subject.Context.Document, harness.Subject.Record, true, CancellationToken.None);
+
+            var textAsync = await result.GetTextAsync(CancellationToken.None);
+            textAsync.ToString().Should().Be(@"namespace Custom
+{
+    public class TestRecord
+{
+    public string FirstName { get; set; }
+
+    public string LastName { get; set; }
+
+    public TestRecord(string firstName, string lastName)
+    {
+        this.FirstName = firstName;
+        this.LastName = lastName;
+    }
+}
+
+    public class ClassWithProperties 
+    {
+        public string First { get;set; }
+    }
+}");
+            var root = await result.GetSyntaxRootAsync();
+            var testRecord = root.DescendantNodes().OfType<ClassDeclarationSyntax>().SingleOrDefault(x => x.Identifier.ToString() == "TestRecord");
+            testRecord.Should().NotBeNull();
+            testRecord!.ContainsAnnotations.Should().BeTrue();
+            testRecord!.HasAnnotation(Formatter.Annotation).Should().BeTrue();
+        }
+
 
 
         public class TestHarness : TestHarnessBase<RecordToClassRefactoring>
